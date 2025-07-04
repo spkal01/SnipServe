@@ -136,7 +136,7 @@ const Landing = () => {
               <motion.div 
                 className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:bg-card/80 transition-colors"
                 variants={fadeInRight}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
               >
                 <div className="flex items-center justify-center sm:justify-start space-x-4 text-center sm:text-left">
@@ -157,7 +157,7 @@ const Landing = () => {
               <motion.div 
                 className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:bg-card/80 transition-colors"
                 variants={fadeInRight}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
               >
                 <div className="flex items-center justify-center sm:justify-start space-x-4 text-center sm:text-left">
@@ -178,8 +178,8 @@ const Landing = () => {
               <motion.div 
                 className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 hover:bg-card/80 transition-colors sm:col-span-2 lg:col-span-1"
                 variants={fadeInRight}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+                whileHover={{ y: -5, transition: { duration: 0.2 }}}
               >
                 <div className="flex items-center justify-center sm:justify-start space-x-4 text-center sm:text-left">
                   <motion.div 
