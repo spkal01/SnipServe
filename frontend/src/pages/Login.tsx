@@ -37,6 +37,7 @@ const Login = () => {
       toast({
         title: 'Success',
         description: 'Logged in successfully!',
+        duration: 2000, // Show for 2 seconds
       });
       navigate(from, { replace: true });
     } catch (error) {

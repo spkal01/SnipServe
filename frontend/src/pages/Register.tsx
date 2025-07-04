@@ -58,6 +58,7 @@ const Register = () => {
       toast({
         title: 'Success',
         description: 'Account created successfully!',
+        duration: 2000, // Show for 2 seconds
       });
     } catch (error) {
       toast({
@@ -78,6 +79,7 @@ const Register = () => {
       toast({
         title: 'Copied!',
         description: 'API key copied to clipboard',
+        duration: 2000, // Show for 2 seconds
       });
     }
   };

@@ -52,6 +52,7 @@ const ViewPaste = () => {
       toast({
         title: 'Copied!',
         description: 'Paste content copied to clipboard',
+        duration: 2000, // Show for 2 seconds
       });
     }
   };
@@ -62,6 +63,7 @@ const ViewPaste = () => {
     toast({
       title: 'Copied!',
       description: 'Paste URL copied to clipboard',
+      duration: 2000, // Show for 2 seconds
     });
   };
 
@@ -74,6 +76,7 @@ const ViewPaste = () => {
       toast({
         title: 'Success',
         description: 'Paste deleted successfully',
+        duration: 2000, // Show for 2 seconds
       });
       navigate('/dashboard');
     } catch (error) {

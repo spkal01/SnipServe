@@ -88,6 +88,7 @@ const EditPaste = () => {
       toast({
         title: 'Success',
         description: 'Paste updated successfully!',
+        duration: 2000, // Show for 2 seconds
       });
       
       navigate(`/paste/${id}`);
