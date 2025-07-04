@@ -19,6 +19,7 @@ const ViewPaste = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (id) {
       fetchPaste();
     }
