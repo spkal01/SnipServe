@@ -1,0 +1,186 @@
+from flask import (
+    Blueprint, request, jsonify, redirect, url_for, session, g
+)
+import os
+import json
+from snipserve import app, db, login_manager, bcrypt, config
+from snipserve.models import Paste, User
+from snipserve.auth import auth_required, api_key_required, get_current_user, optional_auth
+from flask_login import (
+    login_user, logout_user, login_required, current_user
+)
+import secrets
+
+@app.route('/api/pastes/create', methods=['POST'])
+@auth_required
+def create_paste():
+    data = request.get_json()
+    if not data or 'title' not in data or 'content' not in data:
+        return jsonify({'error': 'Invalid input'}), 400
+    
+    user = get_current_user()
+    # Create paste with current user as owner
+    paste = Paste(
+        title=data['title'], 
+        content=data['content'], 
+        created_at=data.get('created_at'), 
+        hidden=data.get('hidden', False),
+        user_id=user.id  # Assign to current user
+    )
+    db.session.add(paste)
+    db.session.commit()
+    
+    return jsonify(paste.to_dict()), 201
+
+@app.route('/api/pastes/<string:paste_id>')
+@optional_auth
+def get_paste(paste_id):
+    paste = Paste.query.filter_by(paste_id=paste_id).first()
+    if not paste:
+        return jsonify({'error': 'Paste not found'}), 404
+    
+    # Check if user is authenticated (either session or API key)
+    user = get_current_user()
+    available = not paste.hidden or user is not None
+    if not available:
+        return jsonify({'error': 'Paste is hidden'}), 403
+    return jsonify(paste.to_dict()), 200
+
+
+@app.route('/api/pastes/<string:paste_id>', methods=['PUT'])
+@auth_required
+def update_paste(paste_id):
+    paste = Paste.query.filter_by(paste_id=paste_id).first()
+    if not paste:
+        return jsonify({'error': 'Paste not found'}), 404
+    
+    user = get_current_user()
+    # Check if user owns the paste
+    if paste.user_id != user.id:
+        return jsonify({'error': 'Unauthorized - you can only edit your own pastes'}), 403
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid input'}), 400
+    
+    if 'title' in data:
+        paste.title = data['title']
+    if 'content' in data:
+        paste.content = data['content']
+    if 'hidden' in data:
+        paste.hidden = data['hidden']
+    
+    db.session.commit()
+    return jsonify(paste.to_dict()), 200
+
+
+@app.route('/api/pastes/<string:paste_id>', methods=['DELETE'])
+@auth_required
+def delete_paste(paste_id):
+    paste = Paste.query.filter_by(paste_id=paste_id).first()
+    if not paste:
+        return jsonify({'error': 'Paste not found'}), 404
+    
+    user = get_current_user()
+    # Check if user owns the paste
+    if paste.user_id != user.id:
+        return jsonify({'error': 'Unauthorized - you can only delete your own pastes'}), 403
+    
+    db.session.delete(paste)
+    db.session.commit()
+    return jsonify({'message': 'Paste deleted successfully'}), 200
+
+@app.route('/api/user/me', methods=['GET'])
+@auth_required
+def get_current_user_info():
+    """Get the current user's information"""
+    user = get_current_user()
+    return jsonify(user.to_dict()), 200
+
+@app.route('/api/user/my-pastes', methods=['GET'])
+@auth_required
+def get_my_pastes():
+    """Get all pastes created by the current user"""
+    user = get_current_user()
+    pastes = Paste.query.filter_by(user_id=user.id).all()
+    return jsonify([paste.to_dict() for paste in pastes]), 200
+
+# Keep existing session-based routes
+@app.route('/api/user/login', methods=['POST'])
+def login_user_route():
+    """Log in a user with username and password"""
+    data = request.get_json()
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({'error': 'Invalid input'}), 400
+    
+    user = User.query.filter_by(username=data['username']).first()
+    if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
+        return jsonify({'error': 'Invalid credentials'}), 401
+    
+    login_user(user)
+    return jsonify({'message': 'Logged in successfully', 'api_key': user.api_key}), 200
+
+@app.route('/api/user/register', methods=['POST'])
+def register_user():
+    """Register a new user"""
+    data = request.get_json()
+    if not data or 'username' not in data or 'password' not in data or 'invite_code' not in data:
+        return jsonify({'error': 'Invalid input'}), 400
+    
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({'error': 'Username already exists'}), 409
+    
+    if data['invite_code'] != config.INVITE_CODE:
+        return jsonify({'error': 'Invalid invite code'}), 403
+    
+    hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+    api_key = generate_api_key()
+    
+    new_user = User(username=data['username'], password_hash=hashed_password, api_key=api_key, is_admin=False)
+    db.session.add(new_user)
+    db.session.commit()
+    # API Key is generated and only shown once during registration
+    login_user(new_user)
+    session['user_id'] = new_user.id  # Store user ID in session
+    return jsonify({'message': 'User registered successfully', 'api_key': api_key}), 201
+
+@app.route('/api/user/logout', methods=['POST'])
+@login_required
+def logout_user_route():
+    """Log out the current user"""
+    logout_user()
+    return jsonify({'message': 'Logged out successfully'}), 200
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user by ID for Flask-Login"""
+    return User.query.get(int(user_id))
+
+def generate_api_key():
+    """Generate a unique API key for the user"""
+    return secrets.token_hex(32)  # 64-character hex string
+
+@app.route('/api/user/api-key', methods=['GET'])
+@login_required
+def refresh_api_key():
+    """Generate a new API key for the current user"""
+    user = get_current_user()
+    user.api_key = generate_api_key()
+    db.session.commit()
+    return jsonify({'api_key': user.api_key}), 200
+
+@app.route("/api/manage/pastes", methods=["GET"])
+@auth_required
+def manage_pastes():
+    """Get all pastes for admin management"""
+    user = get_current_user()
+    if not user.is_admin:
+        return jsonify({'error': 'Unauthorized - admin access required'}), 403
+    
+    pastes = Paste.query.all()
+    return jsonify([paste.to_dict() for paste in pastes]), 200
+
+@app.route("/api/test")
+def test_route():
+    """Test route to verify API is working"""
+    return jsonify({'message': 'API is working'}), 200
