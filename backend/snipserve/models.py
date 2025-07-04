@@ -69,3 +69,19 @@ class Paste(db.Model):
             'username': self.user.username if self.user else None,
             'view_count': self.view_count  # Include view count
         }
+
+
+class PasteView(db.Model):
+    """Track unique views to prevent spam and inflate counts"""
+    id = db.Column(db.Integer, primary_key=True)
+    paste_id = db.Column(db.String(10), db.ForeignKey('paste.paste_id'), nullable=False)
+    ip_address = db.Column(db.String(45), nullable=False)  # IPv6 support
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Null for anonymous users
+    viewed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    paste = db.relationship('Paste', backref='views')
+    user = db.relationship('User', backref='paste_views')
+
+    def __repr__(self):
+        return f'<PasteView {self.paste_id} by {self.user_id or self.ip_address}>'

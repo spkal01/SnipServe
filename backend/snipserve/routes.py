@@ -3,8 +3,9 @@ from flask import (
 )
 import os
 import json
+from datetime import datetime, timedelta
 from snipserve import app, db, login_manager, bcrypt, config
-from snipserve.models import Paste, User
+from snipserve.models import Paste, User, PasteView
 from snipserve.auth import auth_required, api_key_required, get_current_user, optional_auth
 from flask_login import (
     login_user, logout_user, login_required, current_user
@@ -188,26 +189,78 @@ def test_route():
 
 @app.route('/api/pastes/<string:paste_id>/views', methods=['POST', 'GET'])
 def increment_view_count(paste_id):
-    """Increment the view count for a paste"""
+    """Increment the view count for a paste with spam protection"""
     if request.method == 'POST':
         return increment_view_count_post(paste_id)
     elif request.method == 'GET':
         return get_view_count(paste_id)
     else:
         return jsonify({'error': 'Method not allowed'}), 405
-    
+
 def increment_view_count_post(paste_id):
+    """Increment view count with IP and user-based spam protection"""
     paste = Paste.query.filter_by(paste_id=paste_id).first()
     if not paste:
         return jsonify({'error': 'Paste not found'}), 404
     
-    paste.view_count += 1
-    db.session.commit()
-    return jsonify({'message': 'View count incremented successfully', 'view_count': paste.view_count}), 200
+    # Get client IP address (handle proxy headers)
+    client_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+    if client_ip and ',' in client_ip:
+        client_ip = client_ip.split(',')[0].strip()
+    
+    # Get current user if authenticated
+    current_user_id = None
+    try:
+        user = get_current_user()
+        if user:
+            current_user_id = user.id
+            # Don't count views from the paste owner
+            if user.id == paste.user_id:
+                return jsonify({'view_count': paste.view_count or 0}), 200
+    except:
+        pass  # Anonymous user
+    
+    # Time threshold - only count one view per IP/user per 24 hours
+    time_threshold = datetime.utcnow() - timedelta(hours=24)
+    
+    # Check for recent views
+    query = PasteView.query.filter_by(paste_id=paste_id).filter(
+        PasteView.viewed_at > time_threshold
+    )
+    
+    recent_view = None
+    if current_user_id:
+        # For authenticated users, check by user ID (more reliable)
+        recent_view = query.filter_by(user_id=current_user_id).first()
+    else:
+        # For anonymous users, check by IP address
+        recent_view = query.filter_by(ip_address=client_ip, user_id=None).first()
+    
+    # Only increment if no recent view found
+    if not recent_view:
+        # Create new view record
+        new_view = PasteView(
+            paste_id=paste_id,
+            ip_address=client_ip,
+            user_id=current_user_id
+        )
+        db.session.add(new_view)
+        
+        # Increment the paste view count
+        paste.view_count = (paste.view_count or 0) + 1
+        
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to update view count'}), 500
+    
+    return jsonify({'view_count': paste.view_count or 0}), 200
 
 def get_view_count(paste_id):
+    """Get current view count for a paste"""
     paste = Paste.query.filter_by(paste_id=paste_id).first()
     if not paste:
         return jsonify({'error': 'Paste not found'}), 404
     
-    return jsonify({'view_count': paste.view_count}), 200
+    return jsonify({'view_count': paste.view_count or 0}), 200
