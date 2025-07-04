@@ -22,6 +22,7 @@ const Dashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (user) {
       fetchPastes();
     }
