@@ -22,7 +22,5 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 # Expose the correct port
-EXPOSE 5001
-
 # Use the correct port in the command
 CMD ["gunicorn", "-b", "0.0.0.0:5001", "snipserve:app"]

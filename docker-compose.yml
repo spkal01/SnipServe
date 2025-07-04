@@ -7,14 +7,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5433:5433"
+      - "5433:5432"
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD-EXEC", "pg_isready -U pasteuser -d pastebin"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   backend:
     build: ./backend
@@ -22,13 +17,12 @@ services:
       - "5001:5001"
     env_file: .env
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     networks:
       - app-network
 
   frontend:
-    build: .
+    build: ./frontend
     ports:
       - "4174:4174"
     depends_on:
