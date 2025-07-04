@@ -35,6 +35,7 @@ class Paste(db.Model):
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp(), nullable=False)
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp(), nullable=False)
     hidden = db.Column(db.Boolean, default=False, nullable=False)
+    view_count = db.Column(db.Integer, default=0, nullable=False)
     
     # Foreign key to User
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -66,4 +67,5 @@ class Paste(db.Model):
             'hidden': self.hidden,
             'user_id': self.user_id,
             'username': self.user.username if self.user else None,
+            'view_count': self.view_count  # Include view count
         }

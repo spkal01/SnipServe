@@ -32,6 +32,16 @@ const ViewPaste = () => {
     try {
       const data = await api.getPaste(id, apiKey || undefined);
       setPaste(data);
+      
+      // Increment view count after successfully loading the paste
+      try {
+        const viewData = await api.incrementViewCount(id);
+        // Update the local state with the returned view count from the server
+        setPaste(prev => prev ? { ...prev, view_count: viewData.view_count } : prev);
+      } catch (viewError) {
+        // Don't fail the whole operation if view count increment fails
+        console.warn('Failed to increment view count:', viewError);
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -150,6 +160,8 @@ const ViewPaste = () => {
                     <span>By {paste.username}</span>
                     <span>•</span>
                     <span>{createdDate}</span>
+                    <span>•</span>
+                    <span>{paste.view_count || 0} views</span>
                     <span>•</span>
                     <div className="flex items-center gap-1">
                       {paste.hidden ? (

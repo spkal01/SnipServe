@@ -1,4 +1,3 @@
-
 export interface Paste {
   id: string;
   title: string;
@@ -7,6 +6,7 @@ export interface Paste {
   hidden: boolean;
   user_id: number;
   username: string;
+  view_count?: number; // Add this field
 }
 
 export interface CreatePasteRequest {
@@ -118,6 +118,20 @@ export const api = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch pastes');
+    }
+
+    return response.json();
+  },
+
+  async incrementViewCount(pasteId: string): Promise<{ view_count: number }> {
+    const response = await fetch(`/api/pastes/${pasteId}/views`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to increment view count');
     }
 
     return response.json();

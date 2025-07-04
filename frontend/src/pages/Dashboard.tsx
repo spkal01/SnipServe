@@ -284,6 +284,7 @@ const Dashboard = () => {
                               </Link>
                               <div className="flex items-center gap-6 mt-3 text-base text-muted-foreground">
                                 <span>{formatDate(paste.created_at)}</span>
+                                <span>{paste.view_count || 0} views</span>
                                 <div className="flex items-center gap-2">
                                   {paste.hidden ? (
                                     <>

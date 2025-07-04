@@ -184,3 +184,30 @@ def manage_pastes():
 def test_route():
     """Test route to verify API is working"""
     return jsonify({'message': 'API is working'}), 200
+
+
+@app.route('/api/pastes/<string:paste_id>/views', methods=['POST', 'GET'])
+def increment_view_count(paste_id):
+    """Increment the view count for a paste"""
+    if request.method == 'POST':
+        return increment_view_count_post(paste_id)
+    elif request.method == 'GET':
+        return get_view_count(paste_id)
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
+    
+def increment_view_count_post(paste_id):
+    paste = Paste.query.filter_by(paste_id=paste_id).first()
+    if not paste:
+        return jsonify({'error': 'Paste not found'}), 404
+    
+    paste.view_count += 1
+    db.session.commit()
+    return jsonify({'message': 'View count incremented successfully', 'view_count': paste.view_count}), 200
+
+def get_view_count(paste_id):
+    paste = Paste.query.filter_by(paste_id=paste_id).first()
+    if not paste:
+        return jsonify({'error': 'Paste not found'}), 404
+    
+    return jsonify({'view_count': paste.view_count}), 200
