@@ -362,3 +362,24 @@ def get_user_info(username):
     
     else:
         return jsonify({'error': 'Method not allowed'}), 405
+    
+def create_default_admin():
+    db.create_all()
+    """Create a default admin user if it doesn't exist"""
+    admin_username = config.ADMIN_USERNAME
+    admin_password = config.ADMIN_PASSWORD
+    
+    if User.query.filter_by(username=admin_username).first() is None:
+        hashed_password = bcrypt.generate_password_hash(admin_password).decode('utf-8')
+        api_key = generate_api_key()
+        admin_user = User(
+            username=admin_username, 
+            password_hash=hashed_password, 
+            api_key=api_key, 
+            is_admin=True
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+        print(f"Default admin user '{admin_username}' created.")
+    else:
+        print(f"Admin user '{admin_username}' already exists.")
