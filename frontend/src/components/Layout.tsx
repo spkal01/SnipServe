@@ -51,14 +51,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleTheme}
-                  className="hover:bg-muted"
-                >
-                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="hover:bg-muted"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
               </motion.div>
               
               {user ? (
@@ -68,10 +68,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
-                        <Plus className="w-4 h-4 mr-2" />
-                        New Paste
-                      </Button>
+                    <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                      <Plus className="w-4 h-4 mr-2" />
+                      New Paste
+                    </Button>
                     </motion.div>
                   </Link>
                   <Link to="/dashboard">
@@ -79,24 +79,37 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Button variant="outline" className="hover:bg-muted">
-                        <User className="w-4 h-4 mr-2" />
-                        Dashboard
-                      </Button>
+                    <Button variant="outline" className="hover:bg-muted">
+                      <User className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Button>
                     </motion.div>
                   </Link>
+                  {user.is_admin && (
+                    <Link to="/admin">
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                      <Button variant="outline" className="hover:bg-muted">
+                        <User className="w-4 h-4 mr-2" />
+                        Admin
+                      </Button>
+                      </motion.div>
+                    </Link>
+                  )}
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Button 
-                      variant="ghost" 
-                      onClick={handleLogout}
-                      className="hover:bg-muted"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleLogout}
+                    className="hover:bg-muted"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
                   </motion.div>
                 </>
               ) : (
@@ -106,9 +119,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Button variant="outline" className="hover:bg-muted">
-                        Login
-                      </Button>
+                    <Button variant="outline" className="hover:bg-muted">
+                      Login
+                    </Button>
                     </motion.div>
                   </Link>
                   <Link to="/register">
@@ -116,9 +129,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
-                        Register
-                      </Button>
+                    <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                      Register
+                    </Button>
                     </motion.div>
                   </Link>
                 </>
@@ -131,22 +144,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleTheme}
-                  className="hover:bg-muted"
-                >
-                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="hover:bg-muted"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
               </motion.div>
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button
-                  variant="ghost"
-                  size="sm"
+              <Button
+                variant="ghost"
+                size="sm"
                   onClick={toggleMobileMenu}
                   className={`hover:bg-muted transition-all duration-200 ${mobileMenuOpen ? 'bg-muted' : ''}`}
                   aria-expanded={mobileMenuOpen}
@@ -155,21 +168,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <motion.div
                     animate={{ rotate: mobileMenuOpen ? 180 : 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                  >
+              >
                     {mobileMenuOpen ? (
                       <X className="w-5 h-5" />
                     ) : (
-                      <Menu className="w-5 h-5" />
+                <Menu className="w-5 h-5" />
                     )}
                   </motion.div>
-                </Button>
+              </Button>
               </motion.div>
             </div>
           </div>
 
           {/* Mobile Navigation */}
           <AnimatePresence>
-            {mobileMenuOpen && (
+          {mobileMenuOpen && (
               <motion.div
                 className="md:hidden border-t border-border overflow-hidden"
                 initial={{ opacity: 0, height: 0 }}
@@ -184,92 +197,92 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   exit={{ opacity: 0 }}
                   transition={{ delay: 0.1, duration: 0.2 }}
                 >
-                  {user ? (
-                    <div className="space-y-2">
+              {user ? (
+                <div className="space-y-2">
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1, duration: 0.2 }}
                       >
-                        <Link 
-                          to="/create" 
-                          className="block w-full"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
-                            <Plus className="w-4 h-4 mr-2" />
-                            New Paste
-                          </Button>
-                        </Link>
+                  <Link 
+                    to="/create" 
+                    className="block w-full"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                      <Plus className="w-4 h-4 mr-2" />
+                      New Paste
+                    </Button>
+                  </Link>
                       </motion.div>
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.2 }}
                       >
-                        <Link 
-                          to="/dashboard" 
-                          className="block w-full"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <Button variant="outline" className="w-full hover:bg-muted">
-                            <User className="w-4 h-4 mr-2" />
-                            Dashboard
-                          </Button>
-                        </Link>
+                  <Link 
+                    to="/dashboard" 
+                    className="block w-full"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button variant="outline" className="w-full hover:bg-muted">
+                      <User className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
                       </motion.div>
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.2 }}
                       >
-                        <Button 
-                          variant="ghost" 
-                          onClick={handleLogout}
-                          className="w-full hover:bg-muted"
-                        >
-                          <LogOut className="w-4 h-4 mr-2" />
-                          Logout
-                        </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleLogout}
+                    className="w-full hover:bg-muted"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
                       </motion.div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
+                </div>
+              ) : (
+                <div className="space-y-2">
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1, duration: 0.2 }}
                       >
-                        <Link 
-                          to="/login" 
-                          className="block w-full"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <Button variant="outline" className="w-full hover:bg-muted">
-                            Login
-                          </Button>
-                        </Link>
+                  <Link 
+                    to="/login" 
+                    className="block w-full"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button variant="outline" className="w-full hover:bg-muted">
+                      Login
+                    </Button>
+                  </Link>
                       </motion.div>
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.2 }}
                       >
-                        <Link 
-                          to="/register" 
-                          className="block w-full"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
-                            Register
-                          </Button>
-                        </Link>
+                  <Link 
+                    to="/register" 
+                    className="block w-full"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                      Register
+                    </Button>
+                  </Link>
                       </motion.div>
-                    </div>
-                  )}
+                </div>
+              )}
                 </motion.div>
               </motion.div>
-            )}
+          )}
           </AnimatePresence>
         </div>
       </nav>

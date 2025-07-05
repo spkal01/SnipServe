@@ -36,8 +36,8 @@ const EditPaste = () => {
     try {
       const data = await api.getPaste(id, apiKey || undefined);
       
-      // Check if user owns this paste
-      if (user && user.id !== data.user_id) {
+      // Allow access if user owns the paste OR user is admin
+      if (user && data.user_id !== user.id && !user.is_admin) {
         toast({
           title: 'Access Denied',
           description: 'You can only edit your own pastes',

@@ -349,19 +349,78 @@ def get_user_info(username):
     
     elif request.method == 'PUT':
         data = request.get_json()
-        if not data or 'username' or 'password_hash' not in data:
-            return jsonify({'error': 'Invalid input'}), 400
+        if not data:
+            return jsonify({'error': 'Invalid input - no data provided'}), 400
         
-        target_user.username = data['username']
-        if 'password_hash' in data:
-            target_user.password_hash = bcrypt.generate_password_hash(data['password_hash']).decode('utf-8')
+        # Validate that at least one field is provided to update
+        if not any(key in data for key in ['username', 'password', 'is_admin']):
+            return jsonify({'error': 'No valid fields provided for update'}), 400
+        
+        # Update username if provided
+        if 'username' in data:
+            if not data['username'] or not data['username'].strip():
+                return jsonify({'error': 'Username cannot be empty'}), 400
+            # Check if new username already exists (but not for the same user)
+            existing_user = User.query.filter_by(username=data['username']).first()
+            if existing_user and existing_user.id != target_user.id:
+                return jsonify({'error': 'Username already exists'}), 409
+            target_user.username = data['username'].strip()
+        
+        # Update password if provided
+        if 'password' in data:
+            if not data['password'] or len(data['password']) < 6:
+                return jsonify({'error': 'Password must be at least 6 characters long'}), 400
+            target_user.password_hash = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+        
+        # Update admin status if provided
         if 'is_admin' in data:
-            target_user.is_admin = data['is_admin']
-        db.session.commit()
-        return jsonify(target_user.to_dict()), 200
+            target_user.is_admin = bool(data['is_admin'])
+        
+        try:
+            db.session.commit()
+            return jsonify(target_user.to_dict()), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to update user'}), 500
     
-    else:
-        return jsonify({'error': 'Method not allowed'}), 405
+@app.route('/api/admin/users', methods=['POST'])
+@auth_required
+def create_user_admin():
+    """Create a new user (admin only)"""
+    user = get_current_user()
+    if not user.is_admin:
+        return jsonify({'error': 'Unauthorized - admin access required'}), 403
+    
+    data = request.get_json()
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({'error': 'Username and password are required'}), 400
+    
+    # Check if username already exists
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({'error': 'Username already exists'}), 409
+    
+    # Validate password length
+    if len(data['password']) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters long'}), 400
+    
+    # Create the new user
+    hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+    api_key = generate_api_key()
+    
+    new_user = User(
+        username=data['username'],
+        password_hash=hashed_password,
+        api_key=api_key,
+        is_admin=data.get('is_admin', False)
+    )
+    
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify(new_user.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to create user'}), 500
     
 def create_default_admin():
     db.create_all()

@@ -1,9 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: number;
   username: string;
+  is_admin: boolean;
 }
 
 interface AuthContextType {
@@ -44,7 +44,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (response.ok) {
         const userData = await response.json();
-        setUser(userData);
+        setUser({
+          id: userData.id,
+          username: userData.username,
+          is_admin: userData.is_admin 
+        });
         
         // Try to get API key
         const keyResponse = await fetch('/api/user/api-key', {
