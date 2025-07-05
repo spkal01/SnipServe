@@ -42,7 +42,8 @@ def get_paste(paste_id):
     
     # Check if user is authenticated (either session or API key)
     user = get_current_user()
-    available = not paste.hidden or (user.id == paste.user_id) or (user.is_admin) # Allow owner to see hidden pastes and admin
+    # Allow access if paste is public OR user owns it OR user is admin
+    available = not paste.hidden or (user and (user.id == paste.user_id or user.is_admin))
     if not available:
         return jsonify({'error': 'Paste is hidden'}), 403
     return jsonify(paste.to_dict()), 200
@@ -56,8 +57,8 @@ def update_paste(paste_id):
         return jsonify({'error': 'Paste not found'}), 404
     
     user = get_current_user()
-    # Check if user owns the paste or user is admin
-    if paste.user_id != user.id or not user.is_admin:
+    # Check if user owns the paste OR user is admin
+    if paste.user_id != user.id and not user.is_admin:
         return jsonify({'error': 'Unauthorized - you can only edit your own pastes'}), 403
     
     data = request.get_json()
@@ -83,8 +84,8 @@ def delete_paste(paste_id):
         return jsonify({'error': 'Paste not found'}), 404
     
     user = get_current_user()
-    # Check if user owns the paste
-    if paste.user_id != user.id or not user.is_admin:
+    # Check if user owns the paste OR user is admin
+    if paste.user_id != user.id and not user.is_admin:
         return jsonify({'error': 'Unauthorized - you can only delete your own pastes'}), 403
     
     db.session.delete(paste)
