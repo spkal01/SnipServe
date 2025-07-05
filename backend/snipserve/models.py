@@ -23,7 +23,10 @@ class User(db.Model, UserMixin):
     def to_dict(self):
         return {
             'id': self.id,
-            'username': self.username
+            'username': self.username,
+            'created_at': self.created_at.isoformat(),
+            'is_admin': self.is_admin,
+            'password_hash': self.password_hash
         }
 
 

@@ -42,7 +42,7 @@ def get_paste(paste_id):
     
     # Check if user is authenticated (either session or API key)
     user = get_current_user()
-    available = not paste.hidden or user is not None
+    available = not paste.hidden or (user.id == paste.user_id) or (user.is_admin) # Allow owner to see hidden pastes and admin
     if not available:
         return jsonify({'error': 'Paste is hidden'}), 403
     return jsonify(paste.to_dict()), 200
@@ -56,8 +56,8 @@ def update_paste(paste_id):
         return jsonify({'error': 'Paste not found'}), 404
     
     user = get_current_user()
-    # Check if user owns the paste
-    if paste.user_id != user.id:
+    # Check if user owns the paste or user is admin
+    if paste.user_id != user.id or not user.is_admin:
         return jsonify({'error': 'Unauthorized - you can only edit your own pastes'}), 403
     
     data = request.get_json()
@@ -84,7 +84,7 @@ def delete_paste(paste_id):
     
     user = get_current_user()
     # Check if user owns the paste
-    if paste.user_id != user.id:
+    if paste.user_id != user.id or not user.is_admin:
         return jsonify({'error': 'Unauthorized - you can only delete your own pastes'}), 403
     
     db.session.delete(paste)
@@ -264,3 +264,100 @@ def get_view_count(paste_id):
         return jsonify({'error': 'Paste not found'}), 404
     
     return jsonify({'view_count': paste.view_count or 0}), 200
+
+@app.route('/api/admin/paste-analytics/<string:paste_id>', methods=['GET'])
+@auth_required
+def get_paste_analytics(paste_id):
+    """Get detailed view analytics for a paste (admin only)"""
+    user = get_current_user()
+    if not user.is_admin:
+        return jsonify({'error': 'Unauthorized - admin access required'}), 403
+    
+    paste = Paste.query.filter_by(paste_id=paste_id).first()
+    if not paste:
+        return jsonify({'error': 'Paste not found'}), 404
+    
+    # Get view statistics
+    views = PasteView.query.filter_by(paste_id=paste_id).all()
+    
+    analytics = {
+        'total_views': len(views),
+        'unique_ips': len(set(view.ip_address for view in views)),
+        'authenticated_views': len([v for v in views if v.user_id]),
+        'recent_views': len([v for v in views if v.viewed_at > datetime.utcnow() - timedelta(days=7)])
+    }
+    
+    return jsonify(analytics), 200
+
+
+@app.route('/api/admin/paste-analytics', methods=['GET'])
+@auth_required
+def get_all_paste_analytics():
+    """Get analytics for all pastes (admin only)"""
+    user = get_current_user()
+    if not user.is_admin:
+        return jsonify({'error': 'Unauthorized - admin access required'}), 403
+    
+    pastes = Paste.query.all()
+    analytics = []
+    
+    for paste in pastes:
+        views = PasteView.query.filter_by(paste_id=paste.paste_id).all()
+        analytics.append({
+            'paste_id': paste.paste_id,
+            'title': paste.title,
+            'total_views': len(views),
+            'unique_ips': len(set(view.ip_address for view in views)),
+            'authenticated_views': len([v for v in views if v.user_id]),
+            'recent_views': len([v for v in views if v.viewed_at > datetime.utcnow() - timedelta(days=7)])
+        })
+    
+    return jsonify(analytics), 200
+
+@app.route('/api/admin/users', methods=['GET'])
+@auth_required
+def get_all_users():
+    """Get a list of all users (admin only)"""
+    user = get_current_user()
+    if not user.is_admin:
+        return jsonify({'error': 'Unauthorized - admin access required'}), 403
+    
+    users = User.query.all()
+    return jsonify([u.to_dict() for u in users]), 200
+
+
+@app.route('/api/admin/user/<string:username>', methods=['GET', 'DELETE', 'PUT'])
+@auth_required
+def get_user_info(username):
+    """Get, delete or update user information (admin only)"""
+    user = get_current_user()
+    if not user.is_admin:
+        return jsonify({'error': 'Unauthorized - admin access required'}), 403
+    
+    target_user = User.query.get(username=username)
+    if not target_user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    if request.method == 'GET':
+        return jsonify(target_user.to_dict()), 200
+    
+    elif request.method == 'DELETE':
+        db.session.delete(target_user)
+        db.session.commit()
+        return jsonify({'message': 'User deleted successfully'}), 200
+    
+    elif request.method == 'PUT':
+        data = request.get_json()
+        if not data or 'username' or 'password_hash' not in data:
+            return jsonify({'error': 'Invalid input'}), 400
+        
+        target_user.username = data['username']
+        if 'password_hash' in data:
+            target_user.password_hash = bcrypt.generate_password_hash(data['password_hash']).decode('utf-8')
+        if 'is_admin' in data:
+            target_user.is_admin = data['is_admin']
+        db.session.commit()
+        return jsonify(target_user.to_dict()), 200
+    
+    else:
+        return jsonify({'error': 'Method not allowed'}), 405
