@@ -335,7 +335,7 @@ def get_user_info(username):
     if not user.is_admin:
         return jsonify({'error': 'Unauthorized - admin access required'}), 403
     
-    target_user = User.query.get(username=username)
+    target_user = User.query.filter_by(username=username).first()
     if not target_user:
         return jsonify({'error': 'User not found'}), 404
     
