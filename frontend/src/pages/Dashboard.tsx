@@ -60,7 +60,7 @@ const Dashboard = () => {
   const handleRefreshApiKey = async () => {
     setIsRefreshingKey(true);
     try {
-      const key = await refreshApiKey();
+      const key = await refreshApiKey(); // This now calls the /regenerate endpoint
       setNewApiKey(key);
       setShowApiKey(true);
       toast({

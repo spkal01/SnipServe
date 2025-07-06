@@ -164,7 +164,14 @@ def generate_api_key():
 
 @app.route('/api/user/api-key', methods=['GET'])
 @login_required
-def refresh_api_key():
+def get_api_key():
+    """Get the current user's API key (without regenerating)"""
+    user = get_current_user()
+    return jsonify({'api_key': user.api_key}), 200
+
+@app.route('/api/user/api-key/regenerate', methods=['POST'])  
+@login_required
+def regenerate_api_key():
     """Generate a new API key for the current user"""
     user = get_current_user()
     user.api_key = generate_api_key()

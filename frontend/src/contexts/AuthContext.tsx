@@ -50,8 +50,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           is_admin: userData.is_admin 
         });
         
-        // Try to get API key
-        const keyResponse = await fetch('/api/user/api-key', {
+        // Get API key without regenerating it
+        const keyResponse = await fetch('/api/user/api-key', {  // This will use the new GET endpoint
+          method: 'GET',
           credentials: 'include'
         });
         if (keyResponse.ok) {
@@ -127,7 +128,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const refreshApiKey = async () => {
-    const response = await fetch('/api/user/api-key', {
+    // Use the new regenerate endpoint
+    const response = await fetch('/api/user/api-key/regenerate', {
+      method: 'POST',  // Changed to POST and new endpoint
       credentials: 'include'
     });
 
