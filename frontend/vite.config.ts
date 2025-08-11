@@ -10,6 +10,25 @@ export default defineConfig(({ mode }) => ({
         target: 'http://localhost:5001',
         changeOrigin: true,
         secure: false,
+      },
+      '/.well-known': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        secure: false,
+      }
+    },
+  },
+  preview: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/.well-known': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        secure: false,
       }
     },
   },

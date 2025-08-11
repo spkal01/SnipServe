@@ -449,3 +449,26 @@ def create_default_admin():
         print(f"Default admin user '{admin_username}' created.")
     else:
         print(f"Admin user '{admin_username}' already exists.")
+
+@app.route('/.well-known/assetlinks.json', methods=['GET'])
+def serve_assetlinks():
+    """Serve Android Digital Asset Links for App Links verification"""
+    data = [
+        {
+            "relation": [
+                "delegate_permission/common.handle_all_urls"
+            ],
+            "target": {
+                "namespace": "android_app",
+                "package_name": "com.snipservemobile",
+                "sha256_cert_fingerprints": [
+                    "DA:7A:39:82:71:D9:CB:7A:4D:C2:3D:94:8C:F1:37:01:CB:CB:60:46:50:A7:92:C6:E6:24:10:D8:FC:07:85:49"
+                ]
+            }
+        }
+    ]
+    return app.response_class(
+        response=json.dumps(data),
+        status=200,
+        mimetype='application/json'
+    )
