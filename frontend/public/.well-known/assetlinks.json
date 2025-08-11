@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.snipservemobile",
+      "sha256_cert_fingerprints": [
+        "DA:7A:39:82:71:D9:CB:7A:4D:C2:3D:94:8C:F1:37:01:CB:CB:60:46:50:A7:92:C6:E6:24:10:D8:FC:07:85:49"
+      ]
+    }
+  }
+]
