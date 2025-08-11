@@ -104,7 +104,13 @@ def get_current_user_info():
 def get_my_pastes():
     """Get all pastes created by the current user"""
     user = get_current_user()
-    pastes = Paste.query.filter_by(user_id=user.id).all()
+    # Return pastes ordered by most recently updated first so recent activity appears at the top
+    pastes = (
+        Paste.query
+        .filter_by(user_id=user.id)
+        .order_by(Paste.updated_at.desc(), Paste.created_at.desc())
+        .all()
+    )
     return jsonify([paste.to_dict() for paste in pastes]), 200
 
 # Keep existing session-based routes
